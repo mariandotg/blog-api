@@ -1,12 +1,11 @@
 package hello
 
 import (
-  "encoding/json"
-  "fmt"
-  "html"
-  "net/http"
-   
-  "github.com/GoogleCloudPlatform/functions-framework-go/functions"
+	"fmt"
+	"io"
+	"net/http"
+
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
 func init() {
@@ -14,17 +13,16 @@ func init() {
 }
 
 func helloHTTP(w http.ResponseWriter, r *http.Request) {
-	var d struct {
-		Name string `json:"name"`
+	root_url := "https://raw.githubusercontent.com/mariandotg/blog/main/README.md"
+	resp, err := http.Get(root_url)
+	
+	if err != nil {
+		fmt.Fprint(w, "ERROR HACIENDO FETCH")
 	}
-	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
-		fmt.Fprint(w, "Hello, World!")
-		return
-	}
-	if d.Name == "" {
-		fmt.Fprint(w, "Hello, World!")
-		return
-	}
-	fmt.Fprintf(w, "Hello, %s!", html.EscapeString(d.Name))
+	
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	fmt.Fprintf(w, string(body))
+	
 }
 
